@@ -40,8 +40,8 @@ tasks.register('run', JavaExec) {
 	classpath = sourceSets.test.runtimeClasspath
 	mainClass = pluginMainClass
 
-	// --add-opens: ExternalPluginManager.loadBuiltin bere anotacije prek refleksije,
-	// kar novejsi JDK-ji privzeto blokirajo (InaccessibleObjectException ob zagonu).
+	// --add-opens: ExternalPluginManager.loadBuiltin reads annotations reflectively,
+	// which newer JDKs block by default (InaccessibleObjectException on startup).
 	jvmArgs "-ea", "--add-opens=java.base/java.lang.reflect=ALL-UNNAMED"
 	args "--developer-mode", "--debug"
 }
