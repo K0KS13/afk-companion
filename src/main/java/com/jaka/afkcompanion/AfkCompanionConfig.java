@@ -591,10 +591,25 @@ public interface AfkCompanionConfig extends Config
 	}
 
 	@ConfigItem(
+		keyName = "watchedDropItems",
+		name = "Always warn for these drops",
+		description = "Comma separated item names. A drop containing one of them notifies you whatever it is "
+			+ "worth, so untradeables and items with no Grand Exchange price are covered too. "
+			+ "Matching is loose, so 'dragon' catches every dragon item. Example: dragon warhammer, "
+			+ "curved bone, uncut onyx. Leave empty to disable.",
+		position = 9,
+		section = afkSection
+	)
+	default String watchedDropItems()
+	{
+		return "";
+	}
+
+	@ConfigItem(
 		keyName = "randomEventNotify",
 		name = "Random event",
 		description = "Notify when a random event NPC (Genie, Drunken dwarf, Strange plant, ...) comes to talk to you.",
-		position = 9,
+		position = 10,
 		section = afkSection
 	)
 	default boolean randomEventNotify()
@@ -607,7 +622,7 @@ public interface AfkCompanionConfig extends Config
 		name = "Chat trigger",
 		description = "Regular expression matched against game messages; a match sends a notification. "
 			+ "Example: pet|You have run out of|Congratulations. Leave empty to disable.",
-		position = 10,
+		position = 11,
 		section = afkSection
 	)
 	default String chatTriggerRegex()

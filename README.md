@@ -35,7 +35,7 @@ The crab and its shell are matched by NPC id (14779 and 14780), with a name chec
 ## Everything else it watches
 
 **AFK safeguards** — logout warning before the five minute idle kick, low hitpoints, low prayer,
-poison and venom, valuable drops (by Grand Exchange value), random event NPCs, and a free-form
+poison and venom, drops (by Grand Exchange value, by item name, or both), random event NPCs, and a free-form
 chat trigger you write as a regular expression.
 
 **Skilling and combat** — your animation stopped, you are out of combat, inventory full, an item
@@ -50,6 +50,10 @@ Two of these deserve a caveat:
   default, because otherwise it fires while you stand in a bank.
 - **Stopped working** only fires if the plugin saw you working first, so idling in a bank stays
   quiet.
+- **Drops** are caught two independent ways: a Grand Exchange value threshold, and a list of item
+  names you type. The name list is what covers untradeables and anything the Grand Exchange
+  prices at zero, which the threshold can never see. Matching is loose, so `dragon` catches every
+  dragon item. Pets are not loot — they are announced in chat, so use the chat trigger for those.
 
 ## Notifications
 

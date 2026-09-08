@@ -3,8 +3,11 @@ package com.jaka.afkcompanion.watch;
 import com.jaka.afkcompanion.AfkCompanionConfig;
 import com.jaka.afkcompanion.NotificationCategory;
 import com.jaka.afkcompanion.util.Format;
+import com.jaka.afkcompanion.util.NameList;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import javax.inject.Inject;
@@ -429,16 +432,7 @@ public class AfkWatchdog
 			return;
 		}
 
-		final Set<String> watched = new HashSet<>();
-		for (String name : raw.split(","))
-		{
-			final String trimmed = name.trim().toLowerCase(Locale.ROOT);
-			if (!trimmed.isEmpty())
-			{
-				watched.add(trimmed);
-			}
-		}
-
+		final Set<String> watched = NameList.parse(raw);
 		final Set<String> present = new HashSet<>();
 		for (Item item : items)
 		{
@@ -557,9 +551,15 @@ public class AfkWatchdog
 				+ name + " x" + offer.getTotalQuantity() + ".", 3);
 	}
 
+	/**
+	 * A drop is worth telling you about either because it is expensive or because you said so
+	 * by name. The name list is checked independently of the value threshold, so untradeables
+	 * and anything the Grand Exchange prices at zero still get through.
+	 */
 	public void onNpcLootReceived(NpcLootReceived event, NotificationSink sink)
 	{
-		if (!config.valuableDropNotify())
+		final Set<String> watched = NameList.parse(config.watchedDropItems());
+		if (!config.valuableDropNotify() && watched.isEmpty())
 		{
 			return;
 		}
@@ -567,28 +567,50 @@ public class AfkWatchdog
 		long total = 0;
 		long bestValue = -1;
 		String bestItem = null;
+		final List<String> named = new ArrayList<>();
 
 		for (ItemStack stack : event.getItems())
 		{
+			final String name = itemManager.getItemComposition(stack.getId()).getName();
+			final String label = name + (stack.getQuantity() > 1 ? " x" + stack.getQuantity() : "");
 			final long value = (long) itemManager.getItemPrice(stack.getId()) * stack.getQuantity();
 			total += value;
 
 			if (value > bestValue)
 			{
 				bestValue = value;
-				bestItem = itemManager.getItemComposition(stack.getId()).getName()
-					+ (stack.getQuantity() > 1 ? " x" + stack.getQuantity() : "");
+				bestItem = label;
+			}
+
+			if (NameList.firstMatch(name, watched) != null)
+			{
+				named.add(label);
 			}
 		}
 
-		if (total < config.valuableDropThreshold() || bestItem == null)
+		final boolean byName = !named.isEmpty();
+		final boolean byValue = config.valuableDropNotify()
+			&& total >= config.valuableDropThreshold()
+			&& bestItem != null;
+
+		if (!byName && !byValue)
 		{
 			return;
 		}
 
 		final String npcName = event.getNpc().getName() == null ? "NPC" : event.getNpc().getName();
-		sink.notify(NotificationCategory.AFK, "Valuable drop", bestItem + " (" + Format.gp(bestValue) + ") from " + npcName
-			+ (total > bestValue ? ", whole drop " + Format.gp(total) : ""), 5);
+
+		if (byName)
+		{
+			sink.notify(NotificationCategory.AFK, "Drop",
+				String.join(", ", named) + " from " + npcName
+					+ (total > 0 ? ", whole drop " + Format.gp(total) : ""), 5);
+			return;
+		}
+
+		sink.notify(NotificationCategory.AFK, "Valuable drop",
+			bestItem + " (" + Format.gp(bestValue) + ") from " + npcName
+				+ (total > bestValue ? ", whole drop " + Format.gp(total) : ""), 5);
 	}
 
 	private static int toTicks(int seconds)
