@@ -6,6 +6,7 @@ import com.jaka.afkcompanion.AfkCompanionConfig;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.text.Normalizer;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.function.Consumer;
 import javax.imageio.ImageIO;
@@ -36,6 +37,9 @@ public class PushSender
 	private static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
 	private static final MediaType PNG = MediaType.parse("image/png");
 	private static final String SCREENSHOT_NAME = "osrs.png";
+
+	/** At or above this priority a notification counts as urgent. */
+	private static final int URGENT_PRIORITY = 5;
 
 	/** Discord embed accent, by notification priority. */
 	private static final int COLOR_URGENT = 0xE03D3D;
@@ -345,6 +349,25 @@ public class PushSender
 		payload.addProperty("username", "AFK Companion");
 		payload.add("embeds", embeds);
 
+		// Discord only pings for mentions in the message content - one inside an embed is
+		// rendered but never notifies anyone.
+		if (!config.discordMentionUrgentOnly() || priority >= URGENT_PRIORITY)
+		{
+			final String mention = discordMention(config.discordMention());
+			if (!mention.isEmpty())
+			{
+				payload.addProperty("content", mention);
+
+				final JsonArray parse = new JsonArray();
+				parse.add("users");
+				parse.add("roles");
+				parse.add("everyone");
+				final JsonObject allowed = new JsonObject();
+				allowed.add("parse", parse);
+				payload.add("allowed_mentions", allowed);
+			}
+		}
+
 		if (png != null)
 		{
 			final MultipartBody body = new MultipartBody.Builder()
@@ -410,15 +433,60 @@ public class PushSender
 	}
 
 	/**
+	 * Turns whatever the user typed into something Discord will actually ping.
+	 * Accepts a bare user id, a role id prefixed with {@code &}, an already formed
+	 * {@code <@...>} mention, or {@code @everyone} / {@code @here}.
+	 *
+	 * @return the mention to put in the message content, or an empty string for no ping
+	 */
+	static String discordMention(String raw)
+	{
+		final String value = raw == null ? "" : raw.trim();
+
+		if (value.isEmpty() || value.startsWith("<@") || value.startsWith("@"))
+		{
+			return value;
+		}
+
+		if (value.startsWith("&") && value.substring(1).matches("\\d+"))
+		{
+			return "<@&" + value.substring(1) + ">";
+		}
+
+		if (value.matches("\\d+"))
+		{
+			return "<@" + value + ">";
+		}
+
+		// Anything else is passed through untouched rather than mangled into a broken mention.
+		return value;
+	}
+
+	/**
 	 * HTTP headers may only carry printable ASCII, and never a line break.
 	 */
 	static String header(String value)
 	{
-		final StringBuilder sb = new StringBuilder(value.length());
-		for (char c : value.toCharArray())
+		if (value == null)
 		{
+			return "";
+		}
+
+		// Decomposing first means an accented letter degrades to its base letter rather than
+		// vanishing, so "Skoljka" survives where a blind ASCII filter would leave "koljka".
+		final String decomposed = Normalizer.normalize(value, Normalizer.Form.NFD);
+		final StringBuilder sb = new StringBuilder(decomposed.length());
+
+		for (char c : decomposed.toCharArray())
+		{
+			if (Character.getType(c) == Character.NON_SPACING_MARK)
+			{
+				continue;
+			}
+
 			sb.append(c >= 32 && c < 127 ? c : ' ');
 		}
+
 		return sb.toString().trim();
 	}
 

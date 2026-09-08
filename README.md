@@ -56,7 +56,7 @@ Two of these deserve a caveat:
 | Service | What you need | Notes |
 |---|---|---|
 | **ntfy.sh** | just a topic name | Easiest. Install the ntfy app, subscribe to a topic, put the same name in the plugin. No account. |
-| Discord webhook | webhook URL | Arrives as a colour-coded embed; screenshots attach inline. |
+| Discord webhook | webhook URL | Arrives as a colour-coded embed; screenshots attach inline, and it can ping you. |
 | Pushover | user key + app token | |
 | Telegram bot | bot token + chat id | Token comes from @BotFather. |
 | Custom webhook | any URL | Receives `POST {source,title,message,priority}`. |
@@ -70,6 +70,11 @@ Useful settings:
 - **Quiet hours** — a window (may wrap past midnight) where notifications are held back, with an
   option to let urgent ones through anyway.
 - **Cooldown** — minimum gap between notifications.
+- **Discord mention** — who to ping. Paste a user id, a role id prefixed with `&`, or
+  `@everyone` / `@here`; get an id by enabling Developer Mode in Discord and using Copy ID.
+  *Only ping when urgent* limits it to death, low hitpoints, poison, running out of something and
+  valuable drops. The ping goes in the message content rather than the embed, because a mention
+  inside an embed is displayed but never actually notifies anyone.
 
 > An ntfy topic name is the only thing protecting it. Pick something nobody would guess, like
 > `jaka-osrs-8f3k9x2m`. This matters more if you enable screenshots: the image shows your

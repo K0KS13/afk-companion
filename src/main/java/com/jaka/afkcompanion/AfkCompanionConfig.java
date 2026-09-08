@@ -113,10 +113,37 @@ public interface AfkCompanionConfig extends Config
 	}
 
 	@ConfigItem(
+		keyName = "discordMention",
+		name = "Discord mention",
+		description = "Who to ping when a notification arrives. Paste a user id, a role id prefixed with &, "
+			+ "or @everyone / @here. To copy an id, enable Developer Mode in Discord, then right click the "
+			+ "user or role and Copy ID. Leave empty for no ping.",
+		position = 5,
+		section = pushSection
+	)
+	default String discordMention()
+	{
+		return "";
+	}
+
+	@ConfigItem(
+		keyName = "discordMentionUrgentOnly",
+		name = "Only ping when urgent",
+		description = "Ping only for the most urgent notifications - death, low hitpoints, poison, running out "
+			+ "of something, valuable drops - instead of every one.",
+		position = 6,
+		section = pushSection
+	)
+	default boolean discordMentionUrgentOnly()
+	{
+		return false;
+	}
+
+	@ConfigItem(
 		keyName = "pushoverUserKey",
 		name = "Pushover user key",
 		description = "Your Pushover user key.",
-		position = 5,
+		position = 7,
 		section = pushSection
 	)
 	default String pushoverUserKey()
@@ -128,7 +155,7 @@ public interface AfkCompanionConfig extends Config
 		keyName = "pushoverAppToken",
 		name = "Pushover app token",
 		description = "API token of the application you created on Pushover.",
-		position = 6,
+		position = 8,
 		section = pushSection
 	)
 	default String pushoverAppToken()
@@ -140,7 +167,7 @@ public interface AfkCompanionConfig extends Config
 		keyName = "telegramBotToken",
 		name = "Telegram bot token",
 		description = "The token @BotFather gives you.",
-		position = 7,
+		position = 9,
 		section = pushSection
 	)
 	default String telegramBotToken()
@@ -152,7 +179,7 @@ public interface AfkCompanionConfig extends Config
 		keyName = "telegramChatId",
 		name = "Telegram chat id",
 		description = "Id of your conversation with the bot.",
-		position = 8,
+		position = 10,
 		section = pushSection
 	)
 	default String telegramChatId()
@@ -164,7 +191,7 @@ public interface AfkCompanionConfig extends Config
 		keyName = "webhookUrl",
 		name = "Custom webhook",
 		description = "Any URL, which receives a POST with JSON {source,title,message,priority}.",
-		position = 9,
+		position = 11,
 		section = pushSection
 	)
 	default String webhookUrl()
@@ -178,7 +205,7 @@ public interface AfkCompanionConfig extends Config
 		keyName = "pushCooldownSeconds",
 		name = "Cooldown",
 		description = "Minimum gap between two notifications, so a busy moment does not spam your phone.",
-		position = 10,
+		position = 12,
 		section = pushSection
 	)
 	default int pushCooldownSeconds()
@@ -190,7 +217,7 @@ public interface AfkCompanionConfig extends Config
 		keyName = "alsoDesktopNotify",
 		name = "Also notify on desktop",
 		description = "Fire the normal RuneLite desktop notification alongside the phone one.",
-		position = 11,
+		position = 13,
 		section = pushSection
 	)
 	default boolean alsoDesktopNotify()
@@ -202,7 +229,7 @@ public interface AfkCompanionConfig extends Config
 		keyName = "onlyWhenUnfocused",
 		name = "Only when unfocused",
 		description = "Notify only while the RuneLite window is not active, so nothing interrupts you at the keyboard.",
-		position = 12,
+		position = 14,
 		section = pushSection
 	)
 	default boolean onlyWhenUnfocused()
@@ -215,7 +242,7 @@ public interface AfkCompanionConfig extends Config
 		name = "Attach screenshot",
 		description = "Attach a picture of the game so you can see what happened. ntfy and Discord only. "
 			+ "The image shows your username, chat and inventory - use a private topic.",
-		position = 13,
+		position = 15,
 		section = pushSection
 	)
 	default boolean attachScreenshot()
@@ -227,7 +254,7 @@ public interface AfkCompanionConfig extends Config
 		keyName = "quietHours",
 		name = "Quiet hours",
 		description = "Hold back notifications during the configured window.",
-		position = 14,
+		position = 16,
 		section = pushSection
 	)
 	default boolean quietHours()
@@ -240,7 +267,7 @@ public interface AfkCompanionConfig extends Config
 		keyName = "quietFrom",
 		name = "Quiet from (hour)",
 		description = "Hour the quiet window opens.",
-		position = 15,
+		position = 17,
 		section = pushSection
 	)
 	default int quietFrom()
@@ -253,7 +280,7 @@ public interface AfkCompanionConfig extends Config
 		keyName = "quietTo",
 		name = "Quiet until (hour)",
 		description = "Hour the quiet window closes. The window may wrap past midnight.",
-		position = 16,
+		position = 18,
 		section = pushSection
 	)
 	default int quietTo()
@@ -265,7 +292,7 @@ public interface AfkCompanionConfig extends Config
 		keyName = "quietAllowUrgent",
 		name = "Urgent still gets through",
 		description = "During quiet hours, still deliver the most urgent notifications: death, low HP, poison, valuable drops.",
-		position = 17,
+		position = 19,
 		section = pushSection
 	)
 	default boolean quietAllowUrgent()
