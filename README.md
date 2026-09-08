@@ -53,6 +53,11 @@ Two of these deserve a caveat:
 
 ## Notifications
 
+Each service is its own switch, so you can enable several at once — ntfy on your phone and
+Discord for the record, say. Every notification then goes to all of them, and a screenshot is
+encoded once and shared. A service that is switched on but not filled in is skipped with a
+warning in the log instead of holding up the others.
+
 | Service | What you need | Notes |
 |---|---|---|
 | **ntfy.sh** | just a topic name | Easiest. Install the ntfy app, subscribe to a topic, put the same name in the plugin. No account. |

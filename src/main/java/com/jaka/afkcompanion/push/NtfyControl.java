@@ -60,7 +60,7 @@ public class NtfyControl
 
 	public boolean isEnabled()
 	{
-		return config.pushProvider() == PushProvider.NTFY && !controlTopic().isEmpty();
+		return config.sendNtfy() && !controlTopic().isEmpty();
 	}
 
 	public synchronized void start(Consumer<String> handler)

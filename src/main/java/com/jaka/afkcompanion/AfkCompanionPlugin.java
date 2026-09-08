@@ -6,7 +6,6 @@ import com.jaka.afkcompanion.gemstonecrab.CrabInfoBox;
 import com.jaka.afkcompanion.gemstonecrab.GemstoneCrabOverlay;
 import com.jaka.afkcompanion.gemstonecrab.GemstoneCrabTracker;
 import com.jaka.afkcompanion.push.NtfyControl;
-import com.jaka.afkcompanion.push.PushProvider;
 import com.jaka.afkcompanion.push.PushSender;
 import com.jaka.afkcompanion.stats.SessionStats;
 import com.jaka.afkcompanion.util.Format;
@@ -162,6 +161,9 @@ public class AfkCompanionPlugin extends Plugin
 	@Inject
 	private Notifier notifier;
 
+	@Inject
+	private ConfigManager configManager;
+
 	private final Map<NPC, Integer> pendingRandomEvents = new HashMap<>();
 
 	private NavigationButton navButton;
@@ -178,6 +180,8 @@ public class AfkCompanionPlugin extends Plugin
 	@Override
 	protected void startUp()
 	{
+		migrateSingleProviderSetting();
+
 		final BufferedImage icon = ImageUtil.loadImageResource(getClass(), "/icon.png");
 
 		panel.setActions(this::sendTestNotification, this::resetSession);
@@ -233,6 +237,50 @@ public class AfkCompanionPlugin extends Plugin
 		return configManager.getConfig(AfkCompanionConfig.class);
 	}
 
+	/**
+	 * Delivery used to be a single choice. Anyone upgrading has that old value stored, so switch
+	 * on the matching target once and drop the dead key, rather than silently going quiet on them.
+	 */
+	private void migrateSingleProviderSetting()
+	{
+		final String legacy = configManager.getConfiguration(AfkCompanionConfig.GROUP, "pushProvider");
+		if (legacy == null)
+		{
+			return;
+		}
+
+		final String key;
+		switch (legacy)
+		{
+			case "NTFY":
+				key = "sendNtfy";
+				break;
+			case "DISCORD":
+				key = "sendDiscord";
+				break;
+			case "PUSHOVER":
+				key = "sendPushover";
+				break;
+			case "TELEGRAM":
+				key = "sendTelegram";
+				break;
+			case "WEBHOOK":
+				key = "sendWebhook";
+				break;
+			default:
+				key = null;
+				break;
+		}
+
+		if (key != null)
+		{
+			configManager.setConfiguration(AfkCompanionConfig.GROUP, key, true);
+			log.debug("Migrated the old pushProvider setting {} to {}", legacy, key);
+		}
+
+		configManager.unsetConfiguration(AfkCompanionConfig.GROUP, "pushProvider");
+	}
+
 	// ------------------------------------------------------------------ events
 
 	@Subscribe
@@ -244,7 +292,7 @@ public class AfkCompanionPlugin extends Plugin
 		}
 
 		final String key = event.getKey();
-		if ("ntfyControlTopic".equals(key) || "ntfyServer".equals(key) || "pushProvider".equals(key))
+		if ("ntfyControlTopic".equals(key) || "ntfyServer".equals(key) || "sendNtfy".equals(key))
 		{
 			ntfyControl.restart();
 		}
@@ -509,9 +557,9 @@ public class AfkCompanionPlugin extends Plugin
 
 	private void updatePanel()
 	{
-		final String service = config.pushProvider() == PushProvider.OFF
-			? "off"
-			: config.pushProvider() + " (" + pushSender.getSentCount() + " ok / " + pushSender.getFailedCount() + " fail)";
+		final String service = pushSender.hasAnyProvider()
+			? pushSender.enabledLabel() + " (" + pushSender.getSentCount() + " ok / " + pushSender.getFailedCount() + " fail)"
+			: "off";
 
 		final String control = !ntfyControl.isEnabled()
 			? "off"
@@ -534,9 +582,9 @@ public class AfkCompanionPlugin extends Plugin
 
 	private void sendTestNotification()
 	{
-		if (config.pushProvider() == PushProvider.OFF)
+		if (!pushSender.hasAnyProvider())
 		{
-			chat("AFK Companion: no notification service selected, see the plugin settings.");
+			chat("AFK Companion: no delivery service is switched on, see the plugin settings.");
 			return;
 		}
 
@@ -706,7 +754,7 @@ public class AfkCompanionPlugin extends Plugin
 		}
 
 		if (!config.attachScreenshot()
-			|| !config.pushProvider().supportsScreenshots()
+			|| !pushSender.anySupportsScreenshots()
 			|| client.getGameState() != GameState.LOGGED_IN)
 		{
 			pushSender.send(title, message, priority);

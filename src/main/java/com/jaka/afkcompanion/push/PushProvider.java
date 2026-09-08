@@ -1,13 +1,16 @@
 package com.jaka.afkcompanion.push;
 
+/**
+ * A delivery target. Several can be enabled at once, in which case every notification goes
+ * to all of them.
+ */
 public enum PushProvider
 {
-	OFF("Off"),
-	NTFY("ntfy.sh"),
-	DISCORD("Discord webhook"),
+	NTFY("ntfy"),
+	DISCORD("Discord"),
 	PUSHOVER("Pushover"),
-	TELEGRAM("Telegram bot"),
-	WEBHOOK("Custom webhook");
+	TELEGRAM("Telegram"),
+	WEBHOOK("webhook");
 
 	private final String label;
 

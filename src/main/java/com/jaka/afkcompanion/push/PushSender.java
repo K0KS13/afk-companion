@@ -7,8 +7,11 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.text.Normalizer;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 import javax.imageio.ImageIO;
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -83,6 +86,61 @@ public class PushSender
 		failedCount = 0;
 	}
 
+	/**
+	 * @return every delivery target the user has switched on
+	 */
+	public List<PushProvider> enabledProviders()
+	{
+		final List<PushProvider> providers = new ArrayList<>();
+
+		if (config.sendNtfy())
+		{
+			providers.add(PushProvider.NTFY);
+		}
+		if (config.sendDiscord())
+		{
+			providers.add(PushProvider.DISCORD);
+		}
+		if (config.sendPushover())
+		{
+			providers.add(PushProvider.PUSHOVER);
+		}
+		if (config.sendTelegram())
+		{
+			providers.add(PushProvider.TELEGRAM);
+		}
+		if (config.sendWebhook())
+		{
+			providers.add(PushProvider.WEBHOOK);
+		}
+
+		return providers;
+	}
+
+	public boolean hasAnyProvider()
+	{
+		return !enabledProviders().isEmpty();
+	}
+
+	/**
+	 * @return true if at least one enabled target can carry an image
+	 */
+	public boolean anySupportsScreenshots()
+	{
+		return enabledProviders().stream().anyMatch(PushProvider::supportsScreenshots);
+	}
+
+	/**
+	 * @return the enabled targets as a short label, e.g. "ntfy + Discord"
+	 */
+	public String enabledLabel()
+	{
+		final List<PushProvider> providers = enabledProviders();
+		return providers.isEmpty()
+			? "off"
+			: providers.stream().map(PushProvider::toString).collect(Collectors.joining(" + "));
+	}
+
 	public boolean send(String title, String message, int priority)
 	{
 		return send(title, message, priority, null);
@@ -90,7 +148,7 @@ public class PushSender
 
 	/**
 	 * @param screenshot image to attach (ntfy and Discord only), or null
-	 * @return true if the request was accepted for delivery
+	 * @return true if the notification was accepted for delivery by at least one target
 	 */
 	public boolean send(String title, String message, int priority, BufferedImage screenshot)
 	{
@@ -98,12 +156,15 @@ public class PushSender
 	}
 
 	/**
-	 * @param onResult optional callback receiving a human-readable delivery result
+	 * Delivers to every enabled target. A target that is switched on but not configured is
+	 * skipped with a warning rather than blocking the others.
+	 *
+	 * @param onResult optional callback receiving one human-readable result per target
 	 */
 	public boolean send(String title, String message, int priority, BufferedImage screenshot, Consumer<String> onResult)
 	{
-		final PushProvider provider = config.pushProvider();
-		if (provider == PushProvider.OFF)
+		final List<PushProvider> providers = usableProviders(onResult);
+		if (providers.isEmpty())
 		{
 			return false;
 		}
@@ -116,19 +177,8 @@ public class PushSender
 			return false;
 		}
 
-		try
-		{
-			checkConfigured(provider);
-		}
-		catch (IllegalArgumentException e)
-		{
-			log.warn("Push service is not configured: {}", e.getMessage());
-			report(onResult, e.getMessage());
-			return false;
-		}
-
 		lastSentAt = now;
-		executor.execute(() -> dispatch(provider, title, message, priority, screenshot, onResult));
+		executor.execute(() -> dispatchAll(providers, title, message, priority, screenshot, onResult));
 		return true;
 	}
 
@@ -138,39 +188,61 @@ public class PushSender
 	 */
 	public void sendImmediate(String title, String message, int priority)
 	{
-		final PushProvider provider = config.pushProvider();
-		if (provider == PushProvider.OFF)
+		final List<PushProvider> providers = usableProviders(null);
+		if (providers.isEmpty())
 		{
 			return;
 		}
 
-		try
+		executor.execute(() -> dispatchAll(providers, title, message, priority, null, null));
+	}
+
+	private List<PushProvider> usableProviders(Consumer<String> onResult)
+	{
+		final List<PushProvider> usable = new ArrayList<>();
+
+		for (PushProvider provider : enabledProviders())
 		{
-			checkConfigured(provider);
-		}
-		catch (IllegalArgumentException e)
-		{
-			log.warn("Push service is not configured: {}", e.getMessage());
-			return;
+			try
+			{
+				checkConfigured(provider);
+				usable.add(provider);
+			}
+			catch (IllegalArgumentException e)
+			{
+				log.warn("{} is enabled but not configured: {}", provider, e.getMessage());
+				report(onResult, provider + ": " + e.getMessage());
+			}
 		}
 
-		executor.execute(() -> dispatch(provider, title, message, priority, null, null));
+		return usable;
+	}
+
+	private void dispatchAll(List<PushProvider> providers, String title, String message, int priority,
+		BufferedImage screenshot, Consumer<String> onResult)
+	{
+		// Encoded once and shared, however many targets are enabled.
+		final byte[] png = encode(screenshot);
+
+		for (PushProvider provider : providers)
+		{
+			dispatch(provider, title, message, priority, png, onResult);
+		}
 	}
 
 	private void dispatch(PushProvider provider, String title, String message, int priority,
-		BufferedImage screenshot, Consumer<String> onResult)
+		byte[] png, Consumer<String> onResult)
 	{
-		final byte[] png = encode(screenshot);
-
 		final Request request;
 		try
 		{
-			request = buildRequest(provider, title, message, priority, png);
+			request = buildRequest(provider, title, message, priority,
+				provider.supportsScreenshots() ? png : null);
 		}
 		catch (IllegalArgumentException e)
 		{
-			log.warn("Push service is not configured: {}", e.getMessage());
-			report(onResult, e.getMessage());
+			log.warn("{} is not configured: {}", provider, e.getMessage());
+			report(onResult, provider + ": " + e.getMessage());
 			return;
 		}
 
@@ -185,8 +257,8 @@ public class PushSender
 			public void onFailure(Call call, IOException e)
 			{
 				failedCount++;
-				log.warn("Push notification failed", e);
-				report(onResult, "failed: " + e.getMessage());
+				log.warn("Push notification to {} failed", provider, e);
+				report(onResult, provider + ": failed, " + e.getMessage());
 			}
 
 			@Override
@@ -195,13 +267,13 @@ public class PushSender
 				if (response.isSuccessful())
 				{
 					sentCount++;
-					report(onResult, "delivered");
+					report(onResult, provider + ": delivered");
 				}
 				else
 				{
 					failedCount++;
-					log.warn("Push notification rejected: HTTP {}", response.code());
-					report(onResult, "rejected with HTTP " + response.code());
+					log.warn("Push notification to {} rejected: HTTP {}", provider, response.code());
+					report(onResult, provider + ": rejected with HTTP " + response.code());
 				}
 				response.close();
 			}
