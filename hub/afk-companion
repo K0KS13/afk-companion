@@ -1,0 +1,12 @@
+# Plugin Hub manifest.
+#
+# To submit: fork https://github.com/runelite/plugin-hub, copy this file to plugins/afk-companion
+# in that fork (without this comment block), fill in the two values below, and open a pull request.
+#
+# repository - the HTTPS clone URL of this project on GitHub, ending in .git
+# commit     - the full 40 character SHA of the commit you want published
+#
+# Get the commit with: git rev-parse HEAD
+
+repository=https://github.com/YOUR_USERNAME/afk-companion.git
+commit=0000000000000000000000000000000000000000

@@ -1,0 +1,9 @@
+# Copy to gradle.properties if Gradle refuses to start on your default JDK.
+#
+# Gradle 8.10 supports up to JDK 22, so a machine whose default is newer (JDK 26, say)
+# needs to be pointed at an older one. Any JDK 11-17 works; the plugin itself is always
+# compiled to Java 11 bytecode.
+#
+# org.gradle.java.home=C:/Users/you/.jdks/temurin-17.0.20
+
+org.gradle.jvmargs=-Xmx2g
