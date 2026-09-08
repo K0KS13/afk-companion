@@ -1,12 +1,13 @@
-# Plugin Hub manifest.
+# Plugin Hub manifest template.
 #
-# Submitted as https://github.com/runelite/plugin-hub/pull/16263
+# Submitting a version: copy this file to plugins/afk-companion in a fork of
+# runelite/plugin-hub (without this comment block), set commit to the sha you want
+# published, and open a pull request.
 #
-# To publish a new version: push your commits, then copy this file to plugins/afk-companion in a
-# fork of runelite/plugin-hub (without this comment block), update the commit hash, and open a PR.
+#   git rev-parse HEAD
 #
-# Get the commit with: git rev-parse HEAD
+# The commit is deliberately left blank here so this file cannot go stale.
 
 repository=https://github.com/K0KS13/afk-companion.git
-commit=4218dd768fe5c5d3df61e34dd6783b1dcb6bf346
+commit=
 authors=K0KS13
