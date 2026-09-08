@@ -1,6 +1,7 @@
 package com.jaka.afkcompanion.watch;
 
 import com.jaka.afkcompanion.AfkCompanionConfig;
+import com.jaka.afkcompanion.NotificationCategory;
 import com.jaka.afkcompanion.util.Format;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -189,7 +190,7 @@ public class AfkWatchdog
 		if (tick - lastAnimationTick >= toTicks(config.idleAnimationSeconds()))
 		{
 			warnedAnimationIdle = true;
-			sink.notify("AFK Companion", "You stopped working " + config.idleAnimationSeconds() + "s ago.", 4);
+			sink.notify(NotificationCategory.SKILLING, "AFK Companion", "You stopped working " + config.idleAnimationSeconds() + "s ago.", 4);
 		}
 	}
 
@@ -215,7 +216,7 @@ public class AfkWatchdog
 		if (tick - lastCombatTick >= toTicks(config.combatIdleSeconds()))
 		{
 			warnedCombatIdle = true;
-			sink.notify("AFK Companion", "Out of combat for " + config.combatIdleSeconds() + "s.", 4);
+			sink.notify(NotificationCategory.SKILLING, "AFK Companion", "Out of combat for " + config.combatIdleSeconds() + "s.", 4);
 		}
 	}
 
@@ -238,7 +239,7 @@ public class AfkWatchdog
 		if (!warnedIdleLogout && idleSeconds >= LOGOUT_IDLE_SECONDS - config.idleLogoutWarnSeconds())
 		{
 			warnedIdleLogout = true;
-			sink.notify("AFK Companion", "Logging out for inactivity in "
+			sink.notify(NotificationCategory.AFK, "AFK Companion", "Logging out for inactivity in "
 				+ Math.max(0, LOGOUT_IDLE_SECONDS - idleSeconds) + "s.", 4);
 		}
 	}
@@ -274,7 +275,7 @@ public class AfkWatchdog
 		if (!warnedAggro && aggroTicksLeft <= toTicks(config.aggroWarnSeconds()))
 		{
 			warnedAggro = true;
-			sink.notify("Aggression", "NPCs stop attacking in about " + config.aggroWarnSeconds()
+			sink.notify(NotificationCategory.SKILLING, "Aggression", "NPCs stop attacking in about " + config.aggroWarnSeconds()
 				+ "s - step away and back to reset it.", 4);
 		}
 	}
@@ -298,7 +299,7 @@ public class AfkWatchdog
 		if (!warnedLowHp && hp > 0)
 		{
 			warnedLowHp = true;
-			sink.notify("AFK Companion", "Low hitpoints: " + hp + ".", 5);
+			sink.notify(NotificationCategory.AFK, "AFK Companion", "Low hitpoints: " + hp + ".", 5);
 		}
 	}
 
@@ -320,7 +321,7 @@ public class AfkWatchdog
 		if (!warnedLowPrayer && prayer > 0)
 		{
 			warnedLowPrayer = true;
-			sink.notify("AFK Companion", "Low prayer: " + prayer + ".", 4);
+			sink.notify(NotificationCategory.AFK, "AFK Companion", "Low prayer: " + prayer + ".", 4);
 		}
 	}
 
@@ -341,7 +342,7 @@ public class AfkWatchdog
 		if (!warnedPoison)
 		{
 			warnedPoison = true;
-			sink.notify("AFK Companion", poison >= VENOM_THRESHOLD ? "You are envenomed." : "You are poisoned.", 5);
+			sink.notify(NotificationCategory.AFK, "AFK Companion", poison >= VENOM_THRESHOLD ? "You are envenomed." : "You are poisoned.", 5);
 		}
 	}
 
@@ -362,7 +363,7 @@ public class AfkWatchdog
 		if (!warnedSpec)
 		{
 			warnedSpec = true;
-			sink.notify("AFK Companion", "Special attack is back to 100%.", 3);
+			sink.notify(NotificationCategory.SKILLING, "AFK Companion", "Special attack is back to 100%.", 3);
 		}
 	}
 
@@ -394,7 +395,7 @@ public class AfkWatchdog
 				if (!warnedInventoryFull)
 				{
 					warnedInventoryFull = true;
-					sink.notify("AFK Companion", "Your inventory is full.", 4);
+					sink.notify(NotificationCategory.SKILLING, "AFK Companion", "Your inventory is full.", 4);
 				}
 			}
 			else
@@ -460,7 +461,7 @@ public class AfkWatchdog
 		{
 			if (watched.contains(needle) && !present.contains(needle))
 			{
-				sink.notify("AFK Companion", "You ran out of: " + needle + ".", 5);
+				sink.notify(NotificationCategory.SKILLING, "AFK Companion", "You ran out of: " + needle + ".", 5);
 			}
 		}
 
@@ -497,7 +498,7 @@ public class AfkWatchdog
 		{
 			warnedAmmo = true;
 			final String name = itemManager.getItemComposition(ammo.getId()).getName();
-			sink.notify("AFK Companion", "Low ammo: " + name + " x" + ammo.getQuantity() + ".", 4);
+			sink.notify(NotificationCategory.SKILLING, "AFK Companion", "Low ammo: " + name + " x" + ammo.getQuantity() + ".", 4);
 		}
 	}
 
@@ -515,14 +516,14 @@ public class AfkWatchdog
 			return;
 		}
 
-		sink.notify("Level up", event.getSkill().getName() + " " + event.getLevel() + ".", 4);
+		sink.notify(NotificationCategory.ACCOUNT, "Level up", event.getSkill().getName() + " " + event.getLevel() + ".", 4);
 	}
 
 	public void onActorDeath(ActorDeath event, NotificationSink sink)
 	{
 		if (config.deathNotify() && event.getActor() == client.getLocalPlayer())
 		{
-			sink.notify("You died", "Your character has died.", 5);
+			sink.notify(NotificationCategory.ACCOUNT, "You died", "Your character has died.", 5);
 		}
 	}
 
@@ -551,7 +552,7 @@ public class AfkWatchdog
 		}
 
 		final String name = itemManager.getItemComposition(offer.getItemId()).getName();
-		sink.notify("Grand Exchange",
+		sink.notify(NotificationCategory.ACCOUNT, "Grand Exchange",
 			(state == GrandExchangeOfferState.BOUGHT ? "Bought " : "Sold ")
 				+ name + " x" + offer.getTotalQuantity() + ".", 3);
 	}
@@ -586,7 +587,7 @@ public class AfkWatchdog
 		}
 
 		final String npcName = event.getNpc().getName() == null ? "NPC" : event.getNpc().getName();
-		sink.notify("Valuable drop", bestItem + " (" + Format.gp(bestValue) + ") from " + npcName
+		sink.notify(NotificationCategory.AFK, "Valuable drop", bestItem + " (" + Format.gp(bestValue) + ") from " + npcName
 			+ (total > bestValue ? ", whole drop " + Format.gp(total) : ""), 5);
 	}
 

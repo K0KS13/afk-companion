@@ -286,14 +286,51 @@ public interface AfkCompanionConfig extends Config
 	}
 
 	@ConfigItem(
-		keyName = "attachScreenshot",
-		name = "Attach screenshot",
-		description = "Attach a picture of the game so you can see what happened. ntfy and Discord only. "
+		keyName = "screenshotCrab",
+		name = "Screenshot: Gemstone Crab",
+		description = "Attach a picture of the game to crab notifications. ntfy and Discord only. "
 			+ "The image shows your username, chat and inventory - use a private topic.",
 		position = 19,
 		section = pushSection
 	)
-	default boolean attachScreenshot()
+	default boolean screenshotCrab()
+	{
+		return false;
+	}
+
+	@ConfigItem(
+		keyName = "screenshotAfk",
+		name = "Screenshot: AFK safeguards",
+		description = "Attach a picture to logout, hitpoints, prayer, poison, drop, random event and "
+			+ "chat trigger notifications.",
+		position = 20,
+		section = pushSection
+	)
+	default boolean screenshotAfk()
+	{
+		return false;
+	}
+
+	@ConfigItem(
+		keyName = "screenshotSkilling",
+		name = "Screenshot: skilling and combat",
+		description = "Attach a picture to idle, inventory, supplies, aggression and special attack notifications.",
+		position = 21,
+		section = pushSection
+	)
+	default boolean screenshotSkilling()
+	{
+		return false;
+	}
+
+	@ConfigItem(
+		keyName = "screenshotAccount",
+		name = "Screenshot: account events",
+		description = "Attach a picture to level up, death and Grand Exchange notifications.",
+		position = 22,
+		section = pushSection
+	)
+	default boolean screenshotAccount()
 	{
 		return false;
 	}
@@ -302,7 +339,7 @@ public interface AfkCompanionConfig extends Config
 		keyName = "quietHours",
 		name = "Quiet hours",
 		description = "Hold back notifications during the configured window.",
-		position = 20,
+		position = 23,
 		section = pushSection
 	)
 	default boolean quietHours()
@@ -315,7 +352,7 @@ public interface AfkCompanionConfig extends Config
 		keyName = "quietFrom",
 		name = "Quiet from (hour)",
 		description = "Hour the quiet window opens.",
-		position = 21,
+		position = 24,
 		section = pushSection
 	)
 	default int quietFrom()
@@ -328,7 +365,7 @@ public interface AfkCompanionConfig extends Config
 		keyName = "quietTo",
 		name = "Quiet until (hour)",
 		description = "Hour the quiet window closes. The window may wrap past midnight.",
-		position = 22,
+		position = 25,
 		section = pushSection
 	)
 	default int quietTo()
@@ -340,7 +377,7 @@ public interface AfkCompanionConfig extends Config
 		keyName = "quietAllowUrgent",
 		name = "Urgent still gets through",
 		description = "During quiet hours, still deliver the most urgent notifications: death, low HP, poison, valuable drops.",
-		position = 23,
+		position = 26,
 		section = pushSection
 	)
 	default boolean quietAllowUrgent()

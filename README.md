@@ -69,9 +69,10 @@ warning in the log instead of holding up the others.
 Useful settings:
 
 - **Only when unfocused** (on by default) — stay silent while you are actually at the keyboard.
-- **Attach screenshot** — ntfy and Discord carry a picture of the game, so you can see the
-  situation from your phone. If the window is not drawing, the notification goes out after two
-  seconds without it.
+- **Screenshots** — chosen per kind of event, not all at once: separate switches for Gemstone
+  Crab, AFK safeguards, skilling and combat, and account events. A picture is worth it for a
+  crab burrow and pure noise for a level up. ntfy and Discord only; if the window is not
+  drawing, the notification goes out after two seconds without it.
 - **Quiet hours** — a window (may wrap past midnight) where notifications are held back, with an
   option to let urgent ones through anyway.
 - **Cooldown** — minimum gap between notifications.

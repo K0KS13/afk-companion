@@ -180,7 +180,7 @@ public class AfkCompanionPlugin extends Plugin
 	@Override
 	protected void startUp()
 	{
-		migrateSingleProviderSetting();
+		migrateSettings();
 
 		final BufferedImage icon = ImageUtil.loadImageResource(getClass(), "/icon.png");
 
@@ -235,6 +235,39 @@ public class AfkCompanionPlugin extends Plugin
 	AfkCompanionConfig provideConfig(ConfigManager configManager)
 	{
 		return configManager.getConfig(AfkCompanionConfig.class);
+	}
+
+	/**
+	 * Settings that changed shape between versions are carried over here, once, at startup.
+	 */
+	private void migrateSettings()
+	{
+		migrateSingleProviderSetting();
+		migrateGlobalScreenshotSetting();
+	}
+
+	/**
+	 * The screenshot used to be one switch covering every notification. Carry an existing
+	 * "on" over to all four categories, which is what that setting meant.
+	 */
+	private void migrateGlobalScreenshotSetting()
+	{
+		final String legacy = configManager.getConfiguration(AfkCompanionConfig.GROUP, "attachScreenshot");
+		if (legacy == null)
+		{
+			return;
+		}
+
+		if (Boolean.parseBoolean(legacy))
+		{
+			configManager.setConfiguration(AfkCompanionConfig.GROUP, "screenshotCrab", true);
+			configManager.setConfiguration(AfkCompanionConfig.GROUP, "screenshotAfk", true);
+			configManager.setConfiguration(AfkCompanionConfig.GROUP, "screenshotSkilling", true);
+			configManager.setConfiguration(AfkCompanionConfig.GROUP, "screenshotAccount", true);
+			log.debug("Migrated the old attachScreenshot setting to every category");
+		}
+
+		configManager.unsetConfiguration(AfkCompanionConfig.GROUP, "attachScreenshot");
 	}
 
 	/**
@@ -350,7 +383,7 @@ public class AfkCompanionPlugin extends Plugin
 
 		if (wasCrab && config.crabEnabled() && config.crabNotifyBurrow() && damage > 0)
 		{
-			notify("Gemstone Crab", "The crab burrowed away. The shell is minable for 90s - then follow it through the tunnel.", 4);
+			notify(NotificationCategory.CRAB, "Gemstone Crab", "The crab burrowed away. The shell is minable for 90s - then follow it through the tunnel.", 4);
 		}
 	}
 
@@ -390,7 +423,7 @@ public class AfkCompanionPlugin extends Plugin
 		final String message = Text.removeTags(event.getMessage());
 		if (pattern.matcher(message).find())
 		{
-			notify("Chat trigger", message, 4);
+			notify(NotificationCategory.AFK, "Chat trigger", message, 4);
 		}
 	}
 
@@ -484,7 +517,7 @@ public class AfkCompanionPlugin extends Plugin
 		}
 
 		warnedBurrowSoon = true;
-		notify("Gemstone Crab", "The crab burrows in " + remaining + "s. Get your pickaxe ready for the shell.", 4);
+		notify(NotificationCategory.CRAB, "Gemstone Crab", "The crab burrows in " + remaining + "s. Get your pickaxe ready for the shell.", 4);
 	}
 
 	private void checkNotAttackingWarning()
@@ -501,7 +534,7 @@ public class AfkCompanionPlugin extends Plugin
 		}
 
 		warnedNotAttacking = true;
-		notify("Gemstone Crab", "You have not hit the crab for " + sinceHit + "s - you are probably out of the fight.", 4);
+		notify(NotificationCategory.CRAB, "Gemstone Crab", "You have not hit the crab for " + sinceHit + "s - you are probably out of the fight.", 4);
 	}
 
 	private void checkRandomEvents()
@@ -520,7 +553,7 @@ public class AfkCompanionPlugin extends Plugin
 			if (npc.getInteracting() == client.getLocalPlayer())
 			{
 				it.remove();
-				notify("Random event", npc.getName() + " came to visit you.", 4);
+				notify(NotificationCategory.AFK, "Random event", npc.getName() + " came to visit you.", 4);
 				continue;
 			}
 
@@ -728,7 +761,7 @@ public class AfkCompanionPlugin extends Plugin
 		return chatPattern;
 	}
 
-	private void notify(String title, String message, int priority)
+	private void notify(NotificationCategory category, String title, String message, int priority)
 	{
 		if (config.onlyWhenUnfocused() && clientUI.isFocused())
 		{
@@ -753,7 +786,7 @@ public class AfkCompanionPlugin extends Plugin
 			notifier.notify(title + ": " + message);
 		}
 
-		if (!config.attachScreenshot()
+		if (!screenshotWanted(category)
 			|| !pushSender.anySupportsScreenshots()
 			|| client.getGameState() != GameState.LOGGED_IN)
 		{
@@ -780,6 +813,27 @@ public class AfkCompanionPlugin extends Plugin
 				pushSender.send(title, message, priority);
 			}
 		}, SCREENSHOT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+	}
+
+	/**
+	 * A screenshot is worth its bandwidth for some notifications and pure noise for others,
+	 * so it is chosen per kind of event rather than once for everything.
+	 */
+	private boolean screenshotWanted(NotificationCategory category)
+	{
+		switch (category)
+		{
+			case CRAB:
+				return config.screenshotCrab();
+			case AFK:
+				return config.screenshotAfk();
+			case SKILLING:
+				return config.screenshotSkilling();
+			case ACCOUNT:
+				return config.screenshotAccount();
+			default:
+				return false;
+		}
 	}
 
 	private void chat(String message)
