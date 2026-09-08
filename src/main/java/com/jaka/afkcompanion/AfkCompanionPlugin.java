@@ -836,8 +836,13 @@ public class AfkCompanionPlugin extends Plugin
 		}
 	}
 
+	/**
+	 * Writes a line to the game chat. Delivery results arrive on an HTTP thread and the pattern
+	 * warning can come from anywhere, so this always hops to the client thread first -
+	 * {@code invoke} runs straight away when it is already there.
+	 */
 	private void chat(String message)
 	{
-		client.addChatMessage(ChatMessageType.CONSOLE, "", message, null);
+		clientThread.invoke(() -> client.addChatMessage(ChatMessageType.CONSOLE, "", message, null));
 	}
 }
