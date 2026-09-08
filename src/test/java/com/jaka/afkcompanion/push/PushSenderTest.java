@@ -20,6 +20,23 @@ public class PushSenderTest
 		assertEquals("<@&987654321>", PushSender.discordMention("<@&987654321>"));
 		assertEquals("@everyone", PushSender.discordMention("@everyone"));
 		assertEquals("@here", PushSender.discordMention("@here"));
+		assertEquals("@everyone", PushSender.discordMention("@Everyone"));
+	}
+
+	@Test
+	public void stripsTheAtPeopleCopyFromDiscord()
+	{
+		// Discord shows mentions as "@name", so ids get pasted with the @ still attached.
+		// Passed through as typed they render as plain text and ping nobody.
+		assertEquals("<@193349754950778880>", PushSender.discordMention("@193349754950778880"));
+		assertEquals("<@&987654321>", PushSender.discordMention("@&987654321"));
+	}
+
+	@Test
+	public void passesThroughAnythingItCannotParse()
+	{
+		// A username does not resolve through a webhook, but mangling it would be worse.
+		assertEquals("@koks", PushSender.discordMention("@koks"));
 	}
 
 	@Test

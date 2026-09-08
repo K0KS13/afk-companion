@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -513,25 +514,34 @@ public class PushSender
 	 */
 	static String discordMention(String raw)
 	{
-		final String value = raw == null ? "" : raw.trim();
+		final String trimmed = raw == null ? "" : raw.trim();
 
-		if (value.isEmpty() || value.startsWith("<@") || value.startsWith("@"))
+		if (trimmed.isEmpty() || trimmed.startsWith("<@"))
 		{
-			return value;
+			return trimmed;
 		}
 
-		if (value.startsWith("&") && value.substring(1).matches("\\d+"))
+		if (trimmed.equalsIgnoreCase("@everyone") || trimmed.equalsIgnoreCase("@here"))
 		{
-			return "<@&" + value.substring(1) + ">";
+			return trimmed.toLowerCase(Locale.ROOT);
 		}
 
-		if (value.matches("\\d+"))
+		// Discord displays mentions as "@name", so an id is very often pasted with the @ still
+		// on it. Left as typed it renders as plain text and pings nobody, so drop it here.
+		final String id = trimmed.startsWith("@") ? trimmed.substring(1) : trimmed;
+
+		if (id.startsWith("&") && id.substring(1).matches("\\d+"))
 		{
-			return "<@" + value + ">";
+			return "<@&" + id.substring(1) + ">";
+		}
+
+		if (id.matches("\\d+"))
+		{
+			return "<@" + id + ">";
 		}
 
 		// Anything else is passed through untouched rather than mangled into a broken mention.
-		return value;
+		return trimmed;
 	}
 
 	/**
