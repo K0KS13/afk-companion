@@ -86,10 +86,6 @@ Useful settings:
   valuable drops. The ping goes in the message content rather than the embed, because a mention
   inside an embed is displayed but never actually notifies anyone.
 
-> An ntfy topic name is the only thing protecting it. Pick something nobody would guess, like
-> `jaka-osrs-8f3k9x2m`. This matters more if you enable screenshots: the image shows your
-> username, chat and inventory.
-
 ## Asking the client a question from your phone
 
 Set an **ntfy control topic** and the plugin subscribes to it. Publish a word to that topic from
