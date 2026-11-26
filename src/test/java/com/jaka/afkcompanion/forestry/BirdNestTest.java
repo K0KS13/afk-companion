@@ -43,9 +43,11 @@ public class BirdNestTest
 	}
 
 	@Test
-	public void clueNestsAreUrgentPlainNestsAreNot()
+	public void clueNestsAreUrgentOnlyWhenAskedForAndPlainNestsNever()
 	{
-		assertEquals(5, BirdNest.priority(ClueNestTier.BEGINNER));
-		assertEquals(4, BirdNest.priority(null));
+		assertEquals(5, BirdNest.priority(ClueNestTier.BEGINNER, true));
+		assertEquals(4, BirdNest.priority(ClueNestTier.BEGINNER, false));
+		assertEquals(4, BirdNest.priority(null, true));
+		assertEquals(4, BirdNest.priority(null, false));
 	}
 }

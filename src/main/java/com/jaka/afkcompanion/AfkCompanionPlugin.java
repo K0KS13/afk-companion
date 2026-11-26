@@ -715,7 +715,7 @@ public class AfkCompanionPlugin extends Plugin
 		final String message = BirdNest.message(config.birdNestNotify(), config.clueNestTier(), tier);
 		if (message != null)
 		{
-			notify(NotificationCategory.FORESTRY, "Bird's nest", message, BirdNest.priority(tier));
+			notify(NotificationCategory.FORESTRY, "Bird's nest", message, BirdNest.priority(tier, config.clueNestBreakQuietHours()));
 		}
 	}
 

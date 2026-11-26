@@ -44,13 +44,15 @@ from your watch list ran out, low ammo, special attack back to 100%, aggression 
 **Slayer and cannon** — a superior spawned, your task is finished, your dwarf multicannon ran out
 of cannonballs (with an optional warning a few balls earlier) or decayed, your bracelet of
 slaughter or expeditious bracelet crumbled. For a particular slayer drop, put its name in the
-drop list above.
+drop list above. A superior, a finished task and the cannon alerts only get through quiet hours if
+you tick *Break through quiet hours* in this section.
 
 **Woodcutting and Forestry** — a bird's nest fell (or only clue nests from a tier you pick
 upwards), and each Forestry event with its own switch: Rising Roots, Struggling Sapling,
 Flowering Tree, Leprechaun, Poachers, Pheasant Control, Bee Hive, Enchantment Ritual and
 Friendly Ent. An event is reported once, however many roots or bushes it is made of. These are
-off by default, because they are noise unless you are chopping.
+off by default, because they are noise unless you are chopping. A clue nest only gets through quiet
+hours if you tick *Clue nests break through quiet hours*.
 
 **Account events** — level ups, death, Grand Exchange offers completing.
 
@@ -90,12 +92,14 @@ Useful settings:
   and Discord only; if the window is not drawing, the notification goes out after two seconds
   without it.
 - **Quiet hours** — a window (may wrap past midnight) where notifications are held back, with an
-  option to let urgent ones through anyway.
+  option to let urgent ones through anyway. Slayer and clue nest alerts are not urgent unless you
+  tick *Break through quiet hours* in their own section, so a finished task will not wake your
+  phone at night by default.
 - **Cooldown** — minimum gap between notifications.
 - **Discord mention** — who to ping. Paste a user id, a role id prefixed with `&`, or
   `@everyone` / `@here`; get an id by enabling Developer Mode in Discord and using Copy ID.
-  *Only ping when urgent* limits it to death, low hitpoints, poison, running out of something,
-  valuable drops, a superior, a finished task, an empty or decayed cannon and clue nests. The
+  *Only ping when urgent* limits it to death, low hitpoints, poison, running out of something and
+  valuable drops, plus slayer and clue nest alerts you have set to break through quiet hours. The
   ping goes in the message content rather than the embed, because a mention inside an embed is
   displayed but never actually notifies anyone.
 

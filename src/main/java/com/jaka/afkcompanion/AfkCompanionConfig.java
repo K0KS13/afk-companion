@@ -157,7 +157,7 @@ public interface AfkCompanionConfig extends Config
 		keyName = "discordMentionUrgentOnly",
 		name = "Only ping when urgent",
 		description = "Ping only for the most urgent notifications - death, low hitpoints, poison, running out "
-			+ "of something, valuable drops, a superior, a finished task, your cannon, a clue nest - instead of every one.",
+			+ "of something, valuable drops, plus slayer and clue nest ones you set to break through quiet hours - instead of every one.",
 		position = 7,
 		section = pushSection
 	)
@@ -415,7 +415,8 @@ public interface AfkCompanionConfig extends Config
 	@ConfigItem(
 		keyName = "quietAllowUrgent",
 		name = "Urgent still gets through",
-		description = "During quiet hours, still deliver the most urgent notifications: death, low HP, poison, valuable drops, superiors, a finished task, your cannon, clue nests.",
+		description = "During quiet hours, still deliver the most urgent notifications: death, low HP, poison, running out of something, "
+			+ "valuable drops. Slayer and clue nest notifications join them only if you tick the matching 'break through quiet hours' option in their own section.",
 		position = 28,
 		section = pushSection
 	)
@@ -889,6 +890,20 @@ public interface AfkCompanionConfig extends Config
 		return true;
 	}
 
+	@ConfigItem(
+		keyName = "slayerBreakQuietHours",
+		name = "Break through quiet hours",
+		description = "Treat the superior, task complete, empty cannon and decayed cannon notifications as urgent: they "
+			+ "are delivered during quiet hours too (needs 'Urgent still gets through' on) and count as urgent for "
+			+ "'Only ping when urgent'. Off by default, so they do not wake your phone at night.",
+		position = 7,
+		section = slayerSection
+	)
+	default boolean slayerBreakQuietHours()
+	{
+		return false;
+	}
+
 	// ---------------------------------------------------------------- woodcutting and forestry
 
 	@ConfigItem(
@@ -1020,6 +1035,20 @@ public interface AfkCompanionConfig extends Config
 		section = forestrySection
 	)
 	default boolean forestryFriendlyEntNotify()
+	{
+		return false;
+	}
+
+	@ConfigItem(
+		keyName = "clueNestBreakQuietHours",
+		name = "Clue nests break through quiet hours",
+		description = "Treat a clue nest notification as urgent: it is delivered during quiet hours too (needs "
+			+ "'Urgent still gets through' on) and counts as urgent for 'Only ping when urgent'. Off by default. "
+			+ "Ordinary bird's nests and Forestry events are never urgent.",
+		position = 11,
+		section = forestrySection
+	)
+	default boolean clueNestBreakQuietHours()
 	{
 		return false;
 	}

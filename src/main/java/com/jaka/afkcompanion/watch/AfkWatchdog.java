@@ -89,8 +89,9 @@ public class AfkWatchdog
 	private final int[] knownLevels = new int[Skill.values().length];
 	private Set<String> watchedItemsPresent = new HashSet<>();
 
+	// Package private rather than private so a test can build one without Guice.
 	@Inject
-	private AfkWatchdog(Client client, AfkCompanionConfig config, ItemManager itemManager)
+	AfkWatchdog(Client client, AfkCompanionConfig config, ItemManager itemManager)
 	{
 		this.client = client;
 		this.config = config;
@@ -524,6 +525,15 @@ public class AfkWatchdog
 		}
 	}
 
+	/**
+	 * A superior, a finished task and the cannon only count as urgent - which is what lets them through
+	 * quiet hours and the Discord "urgent only" ping - when the user has ticked the box for it.
+	 */
+	private int slayerPriority()
+	{
+		return config.slayerBreakQuietHours() ? 5 : 4;
+	}
+
 	public void onChatAlert(ChatAlert alert, NotificationSink sink)
 	{
 		switch (alert)
@@ -531,19 +541,19 @@ public class AfkWatchdog
 			case SUPERIOR:
 				if (config.superiorNotify())
 				{
-					sink.notify(NotificationCategory.SLAYER, "Superior", "A superior foe has appeared.", 5);
+					sink.notify(NotificationCategory.SLAYER, "Superior", "A superior foe has appeared.", slayerPriority());
 				}
 				break;
 			case CANNON_EMPTY:
 				if (config.cannonEmptyNotify())
 				{
-					sink.notify(NotificationCategory.SLAYER, "Cannon", "Your cannon is out of ammo.", 5);
+					sink.notify(NotificationCategory.SLAYER, "Cannon", "Your cannon is out of ammo.", slayerPriority());
 				}
 				break;
 			case TASK_COMPLETE:
 				if (config.taskCompleteNotify())
 				{
-					sink.notify(NotificationCategory.SLAYER, "Slayer", "Task complete - return to a Slayer master.", 5);
+					sink.notify(NotificationCategory.SLAYER, "Slayer", "Task complete - return to a Slayer master.", slayerPriority());
 				}
 				break;
 			case SLAUGHTER_BROKE:
@@ -579,7 +589,7 @@ public class AfkWatchdog
 	{
 		if (cannonWarning.decayed(value) && config.cannonDecayNotify())
 		{
-			sink.notify(NotificationCategory.SLAYER, "Cannon", "Your cannon has decayed.", 5);
+			sink.notify(NotificationCategory.SLAYER, "Cannon", "Your cannon has decayed.", slayerPriority());
 		}
 	}
 

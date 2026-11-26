@@ -39,9 +39,12 @@ public final class BirdNest
 		return article + tier + " clue nest fell out of the tree.";
 	}
 
-	/** A clue nest is worth a ping; an ordinary one is not. */
-	public static int priority(ClueNestTier clueTier)
+	/**
+	 * A clue nest is urgent - and so gets through quiet hours - only when the user has asked for that;
+	 * an ordinary nest never is.
+	 */
+	public static int priority(ClueNestTier clueTier, boolean urgentClueNests)
 	{
-		return clueTier != null ? 5 : 4;
+		return clueTier != null && urgentClueNests ? 5 : 4;
 	}
 }
