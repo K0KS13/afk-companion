@@ -81,6 +81,8 @@ public class AfkWatchdog
 	private boolean warnedPoison;
 	private boolean warnedAggro;
 
+	private final CannonWarning cannonWarning = new CannonWarning();
+
 	private WorldPoint aggroAnchor;
 	private int aggroTicksLeft = AGGRO_TICKS;
 
@@ -111,6 +113,7 @@ public class AfkWatchdog
 		warnedSpec = false;
 		warnedPoison = false;
 		warnedAggro = false;
+		cannonWarning.reset();
 		aggroAnchor = null;
 		aggroTicksLeft = AGGRO_TICKS;
 		Arrays.fill(knownLevels, 0);
@@ -518,6 +521,65 @@ public class AfkWatchdog
 		if (config.deathNotify() && event.getActor() == client.getLocalPlayer())
 		{
 			sink.notify(NotificationCategory.ACCOUNT, "You died", "Your character has died.", 5);
+		}
+	}
+
+	public void onChatAlert(ChatAlert alert, NotificationSink sink)
+	{
+		switch (alert)
+		{
+			case SUPERIOR:
+				if (config.superiorNotify())
+				{
+					sink.notify(NotificationCategory.SLAYER, "Superior", "A superior foe has appeared.", 5);
+				}
+				break;
+			case CANNON_EMPTY:
+				if (config.cannonEmptyNotify())
+				{
+					sink.notify(NotificationCategory.SLAYER, "Cannon", "Your cannon is out of ammo.", 5);
+				}
+				break;
+			case TASK_COMPLETE:
+				if (config.taskCompleteNotify())
+				{
+					sink.notify(NotificationCategory.SLAYER, "Slayer", "Task complete - return to a Slayer master.", 5);
+				}
+				break;
+			case SLAUGHTER_BROKE:
+				if (config.slaughterBrokeNotify())
+				{
+					sink.notify(NotificationCategory.SLAYER, "Bracelet", "Your bracelet of slaughter crumbled to dust.", 4);
+				}
+				break;
+			case EXPEDITIOUS_BROKE:
+				if (config.expeditiousBrokeNotify())
+				{
+					sink.notify(NotificationCategory.SLAYER, "Bracelet", "Your expeditious bracelet crumbled to dust.", 4);
+				}
+				break;
+			default:
+				break;
+		}
+	}
+
+	/**
+	 * Called whenever the number of cannonballs loaded in your cannon changes. An empty cannon has
+	 * its own game message, so this only covers the warning before it.
+	 */
+	public void onCannonballsChanged(int cannonballs, NotificationSink sink)
+	{
+		if (cannonWarning.update(cannonballs, config.cannonLowThreshold()))
+		{
+			sink.notify(NotificationCategory.SLAYER, "Cannon", "Your cannon has " + cannonballs + " cannonballs left.", 4);
+		}
+	}
+
+	public void onCannonDecayedChanged(int value, NotificationSink sink)
+	{
+		if (cannonWarning.decayed(value) && config.cannonDecayNotify())
+		{
+			sink.notify(NotificationCategory.SLAYER, "Cannon", "Your cannon has decayed.", 5);
 		}
 	}
 
